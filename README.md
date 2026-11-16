@@ -13,14 +13,33 @@ Aplikasi portofolio pribadi multiplatform yang dibuat dengan Flutter dan Dart. H
 ## Struktur Proyek
 
 ```text
-lib/
-├── main.dart   # entry point dan MaterialApp
-└── menu.dart   # MyHomePage, InfoCard, ItemCard, ItemHomepage
+myportofolio_mobile/
+├── android/                  # berkas platform Android
+├── ios/                      # berkas platform iOS
+├── linux/                    # berkas platform Linux
+├── macos/                    # berkas platform macOS
+├── web/                      # berkas platform Web
+├── windows/                  # berkas platform Windows
+├── lib/
+│   ├── main.dart             # entry point, MyApp, dan MaterialApp
+│   └── menu.dart             # konstanta warna, halaman, model, dan kartu
+├── test/
+│   └── widget_test.dart      # pengujian widget bawaan proyek
+├── .idea/                    # konfigurasi IDE lokal
+├── .gitignore                # berkas/folder yang diabaikan Git
+├── .metadata                 # metadata proyek Flutter
+├── analysis_options.yaml     # aturan analisis Dart
+├── myportofolio_mobile.iml   # konfigurasi modul IDE
+├── pubspec.yaml              # metadata, dependensi, dan aset proyek
+├── pubspec.lock              # versi dependensi yang terkunci
+└── README.md                 # dokumentasi dan refleksi tugas
 ```
+
+Folder `.git/` menyimpan metadata repositori. Folder `build/` dan `.dart_tool/` dibuat otomatis saat proyek dibangun atau dianalisis; semuanya tidak dicantumkan sebagai sumber utama aplikasi.
 
 ## Menjalankan Proyek
 
-Pastikan Flutter SDK sudah terpasang dan `flutter doctor` tidak menunjukkan kendala untuk platform yang akan digunakan. Versi yang dipakai: [hasil `flutter --version`].
+Pastikan Flutter SDK sudah terpasang dan `flutter doctor` tidak menunjukkan kendala untuk platform yang akan digunakan.
 
 ```bash
 flutter pub get
@@ -33,6 +52,8 @@ Untuk memeriksa kualitas kode dari root proyek:
 flutter analyze
 ```
 
+Analisis terakhir pada proyek ini menghasilkan `No issues found`.
+
 ## Progres Mingguan
 
 - **Tutorial 08:** setup Flutter, pemisahan `menu.dart`, `InfoCard` dan `ItemCard`.
@@ -42,7 +63,7 @@ flutter analyze
 
 ### Tugas 7
 
-1. **Widget tree** adalah susunan widget yang membentuk antarmuka Flutter. Setiap widget dapat memiliki widget anak dan menjadi bagian dari pohon yang berakar pada widget aplikasi. Pada proyek ini, `MyApp` membangun `MaterialApp`, yang menampilkan `MyHomePage`. Halaman tersebut membangun `Scaffold` dengan `AppBar` dan body. Body berisi `Container`, `SingleChildScrollView`, dan `Column`; di dalamnya terdapat kartu profil dan grid `ItemCard`. Hubungan induk-anak menentukan tata letak, batasan ukuran, dan bagaimana properti seperti tema atau konteks diwariskan.
+1. **Widget tree** adalah susunan widget yang membentuk antarmuka Flutter. Sebuah widget dapat memiliki nol atau lebih widget anak dan menjadi bagian dari pohon yang berakar pada widget aplikasi. Pada proyek ini, `MyApp` membangun `MaterialApp`, yang menampilkan `MyHomePage`. Halaman tersebut membangun `Scaffold` dengan `AppBar` dan body. Body berisi `Container`, `SingleChildScrollView`, dan `Column`; di dalamnya terdapat kartu profil dan grid `ItemCard`. Hubungan induk-anak menentukan tata letak, batasan ukuran, dan bagaimana properti seperti tema atau konteks diwariskan.
 
 2. **Widget yang digunakan dan fungsinya:**
    - `MaterialApp` mengatur kerangka aplikasi Material, tema, dan halaman awal.
@@ -59,9 +80,8 @@ flutter analyze
    - `Text` menampilkan label dan isi informasi.
    - `Material` dan `InkWell` membentuk kartu aksi dengan efek ripple saat disentuh.
    - `ScaffoldMessenger` menampilkan dan mengelola SnackBar.
-   - `SnackBar` memberi umpan balik saat tombol ditekan.
-   - `showDialog`, `AlertDialog`, dan `TextButton` menyediakan konfirmasi Logout.
-   - `showModalBottomSheet` menampilkan detail Skills dan Experience dari bawah layar.
+   - `SnackBar` memberi umpan balik saat tombol ditekan; `SnackBarAction` menawarkan aksi untuk membuka detail.
+   - `AlertDialog` dan `TextButton` membentuk tampilan konfirmasi Logout.
    - `SafeArea` menjaga isi bottom sheet dari area sistem; `ListTile` menyusun setiap detail.
    - `MyApp`, `MyHomePage`, `InfoCard`, dan `ItemCard` adalah widget buatan proyek untuk mengatur aplikasi, halaman, informasi profil, dan kartu aksi.
 
@@ -71,7 +91,7 @@ flutter analyze
 
 5. **`BuildContext`:** objek ini mewakili lokasi sebuah widget di dalam widget tree. Melalui konteks, widget dapat menemukan konfigurasi dari leluhurnya, seperti tema, navigator, atau `ScaffoldMessenger`. Metode `build(BuildContext context)` menerima konteks tersebut agar widget dapat membangun tampilan dan mengakses layanan yang tepat. Konteks sebaiknya tidak dipakai sembarangan setelah operasi asynchronous; proyek ini memeriksa `context.mounted` setelah menunggu dialog Logout.
 
-6. **Hot reload dan hot restart:** hot reload menerapkan perubahan kode Dart ke aplikasi yang sedang berjalan dan umumnya mempertahankan state saat ini. Hot restart memulai ulang aplikasi Flutter dari `main` dan menghapus state dalam memori. Hot reload tidak cukup untuk perubahan yang memerlukan inisialisasi ulang, misalnya mengubah konstanta global seperti `pine` atau `sage` (inisialisasi variabel global tidak dijalankan ulang), kode native, atau konfigurasi plugin platform. Perubahan tersebut memerlukan hot restart atau menghentikan lalu menjalankan ulang aplikasi (full restart).
+6. **Hot reload dan hot restart:** hot reload menerapkan perubahan kode Dart ke aplikasi yang sedang berjalan, membangun ulang widget tree, dan umumnya mempertahankan state. Hot restart menjalankan ulang aplikasi dari `main` dan menghapus state dalam memori. Perubahan nilai `const` seperti warna `pine` atau `sage` dapat diterapkan melalui hot reload. Perubahan initializer variabel global atau field statis yang menyimpan state memerlukan hot restart; perubahan kode native memerlukan full restart. Lihat [panduan resmi Flutter tentang hot reload](https://docs.flutter.dev/tools/hot-reload).
 
 ## Pengungkapan Penggunaan AI
 
