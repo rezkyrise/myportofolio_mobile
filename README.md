@@ -1,6 +1,6 @@
 # MyPortfolio Mobile
 
-Aplikasi portofolio pribadi multiplatform yang dibuat dengan Flutter dan Dart. Halaman utama menampilkan identitas pemilik, menu Skills dan Experience, aksi tambah, serta Logout dengan konfirmasi. Komponen halaman dan kartu dipisahkan di `lib/menu.dart`; `lib/main.dart` menjadi entry point aplikasi.
+Aplikasi portofolio pribadi multiplatform yang dibuat dengan Flutter dan Dart. Halaman utama menampilkan identitas pemilik, menu Skills dan Experience, aksi tambah, serta Logout dengan konfirmasi. Halaman berada di `lib/screens/`, sedangkan drawer dan kartu aksi berada di `lib/widgets/`; `lib/main.dart` menjadi entry point aplikasi.
 
 ## Fitur
 
@@ -9,6 +9,7 @@ Aplikasi portofolio pribadi multiplatform yang dibuat dengan Flutter dan Dart. H
 - SnackBar muncul saat kartu ditekan dengan pesan sesuai nama tombol.
 - Bottom sheet detail untuk Skills dan Experience.
 - Dialog konfirmasi sebelum Logout.
+- Form Tambah Skill dengan validasi dan dialog ringkasan.
 
 ## Struktur Proyek
 
@@ -21,8 +22,13 @@ myportofolio_mobile/
 ├── web/                      # berkas platform Web
 ├── windows/                  # berkas platform Windows
 ├── lib/
-│   ├── main.dart             # entry point, MyApp, dan MaterialApp
-│   └── menu.dart             # konstanta warna, halaman, model, dan kartu
+│   ├── main.dart                     # entry point, MyApp, dan MaterialApp
+│   ├── screens/
+│   │   ├── menu.dart                # halaman utama dan InfoCard
+│   │   └── skill_form.dart          # form tambah skill
+│   └── widgets/
+│       ├── left_drawer.dart         # drawer navigasi
+│       └── project_card.dart        # model item dan kartu aksi
 ├── test/
 │   └── widget_test.dart      # pengujian widget bawaan proyek
 ├── .idea/                    # konfigurasi IDE lokal
@@ -56,8 +62,9 @@ Analisis terakhir pada proyek ini menghasilkan `No issues found`.
 
 ## Progres Mingguan
 
-- **Tutorial 08:** setup Flutter, pemisahan `menu.dart`, `InfoCard` dan `ItemCard`.
+- **Tutorial 08:** setup Flutter, `InfoCard` dan `ItemCard`.
 - **Tugas 7:** profil pribadi, 5 kartu aksi berwarna, SnackBar, bottom sheet detail, konfirmasi Logout.
+- **Tutorial 09:** drawer, navigasi dan form tambah skill; halaman dan widget dirapikan ke folder terpisah.
 
 ## Pertanyaan Reflektif
 

@@ -1,4 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:myportofolio_mobile/screens/skill_form.dart';
+import 'package:myportofolio_mobile/widgets/left_drawer.dart';
+import 'package:myportofolio_mobile/widgets/project_card.dart';
 
 const Color pine = Color(0xFF2F4F4F);
 const Color sage = Color(0xFF587A62);
@@ -106,6 +109,13 @@ class MyHomePage extends StatelessWidget {
                 ),
         ),
       );
+
+    if (item.name == 'Tambah Skill') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const SkillFormPage()),
+      );
+    }
   }
 
   /// Menampilkan rincian item dalam modal bottom sheet.
@@ -161,6 +171,13 @@ class MyHomePage extends StatelessWidget {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: pine,
+      ),
+      drawer: LeftDrawer(
+        onHome: () => Navigator.pop(context),
+        onAddSkill: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SkillFormPage()),
+        ),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -273,25 +290,6 @@ class MyHomePage extends StatelessWidget {
   }
 }
 
-/// Model untuk data tombol menu pada halaman portofolio.
-class ItemHomepage {
-  final String name;
-  final IconData icon;
-  final Color color;
-  final Color foregroundColor;
-  final Color iconColor;
-  final List<String>? details;
-
-  ItemHomepage(
-    this.name,
-    this.icon,
-    this.color, {
-    this.details,
-    this.foregroundColor = Colors.white,
-    this.iconColor = Colors.white,
-  });
-}
-
 /// Kartu ringkas untuk satu informasi profil, seperti nama atau NPM.
 class InfoCard extends StatelessWidget {
   // Kartu informasi yang menampilkan judul (title) dan isi (content).
@@ -323,71 +321,6 @@ class InfoCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Kartu aksi yang menangani tampilan dan meneruskan tap ke callback.
-class ItemCard extends StatelessWidget {
-  final ItemHomepage item;
-  final bool isCompact;
-  final VoidCallback? onPressed;
-
-  const ItemCard(
-    this.item, {
-    super.key,
-    this.isCompact = false,
-    this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      // Menggunakan warna sekunder dari skema tema aplikasi.
-      color: item.color,
-      elevation: 2,
-      borderRadius: BorderRadius.circular(20),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        // Aksi ketika kartu ditekan oleh pengguna.
-        onTap: onPressed,
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: isCompact
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(item.icon, color: item.iconColor, size: 24),
-                    const SizedBox(width: 10),
-                    _itemLabel(),
-                  ],
-                )
-              : Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(item.icon, color: item.iconColor, size: 42),
-                      const SizedBox(height: 8),
-                      _itemLabel(),
-                    ],
-                  ),
-                ),
-        ),
-      ),
-    );
-  }
-
-  Widget _itemLabel() {
-    return Text(
-      item.name,
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        color: item.foregroundColor,
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.3,
       ),
     );
   }
