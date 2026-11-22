@@ -31,6 +31,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
     super.dispose();
   }
 
+  /// Membuat field tanggal bersama, dengan batas awal opsional dan tombol hapus.
   Widget _buildDateField({
     required GlobalKey<FormFieldState<DateTime>> fieldKey,
     required String label,
@@ -140,6 +141,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
     );
   }
 
+  /// Menghasilkan URL HTTP(S) untuk pratinjau, atau null jika kosong atau tidak valid.
   String? get _validThumbnailUrl {
     final text = _thumbnailController.text.trim();
     if (text.isEmpty) return null;
@@ -279,6 +281,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                   firstDate: () => _startDateKey.currentState?.value,
                   validator: (endedAt) {
                     final startedAt = _startDateKey.currentState?.value;
+                    // Pengalaman satu hari valid, jadi hanya tanggal yang lebih awal yang ditolak.
                     if (startedAt != null &&
                         endedAt != null &&
                         endedAt.isBefore(startedAt)) {
@@ -317,6 +320,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                   const SizedBox(height: 12),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
+                    // URL yang valid tetap bisa gagal dimuat karena gambar atau jaringan.
                     child: Image.network(
                       imageUrl,
                       height: 180,

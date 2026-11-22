@@ -121,7 +121,8 @@ Analisis terakhir pada proyek ini menghasilkan `No issues found`.
 
 ### Tugas 8
 
-1. Navigasi Antarhalaman
+**1.**
+
 | Metode | Perbedaan |
 |---|---|
 | `Navigator.push()` | Menambahkan halaman baru di atas halaman aktif. |
@@ -130,11 +131,17 @@ Analisis terakhir pada proyek ini menghasilkan `No issues found`.
 
 Kartu **Tambah Experience** memakai `Navigator.push()`. Opsi **Home** pada drawer menutup drawer dan kembali ke halaman utama melalui `Navigator.pop()` sesuai susunan halaman yang dibuka. Dari formulir Experience, `Navigator.popUntil()` digunakan untuk kembali ke route pertama, yaitu Home.
 
-2. `Scaffold` menyediakan kerangka halaman yang menampung `AppBar`, `Drawer`, dan body. Pemakaian susunan yang sama di Home dan formulir membuat navigasi serta bagian atas halaman mudah dikenali. Contohnya, warna pine digunakan pada `AppBar` Home dan halaman Tambah Experience.
+**2.**
 
-3. `ListView` dipilih agar seluruh formulir dapat digulir saat layar sempit atau keyboard terbuka. `Padding` memberi ruang dari tepi layar, sedangkan `SizedBox` mengatur jarak antarkolom. Dengan begitu, tombol Simpan tetap dapat dicapai dengan menggulir.
+`Scaffold` menyediakan kerangka halaman yang menampung `AppBar`, `Drawer`, dan body. Pemakaian susunan yang sama di Home dan formulir membuat navigasi serta bagian atas halaman mudah dikenali. Contohnya, warna pine digunakan pada `AppBar` Home dan halaman Tambah Experience.
 
-4. `GlobalKey<FormState>` memberi akses ke state Form. Setiap `validator` memeriksa nilai field dan mengembalikan pesan kesalahan atau `null`. Tombol Simpan memanggil `validate()` untuk menjalankan semua validator sebelum data diproses. Contohnya, organisasi yang hanya berisi spasi ditolak setelah `trim()`. `TextInputType.url` hanya membantu menampilkan papan ketik URL. Pengguna tetap dapat menempelkan teks yang tidak valid, sehingga URL harus diperiksa oleh validator.
+**3.**
+
+`ListView` dipilih agar seluruh formulir dapat digulir saat layar sempit atau keyboard terbuka. `Padding` memberi ruang dari tepi layar, sedangkan `SizedBox` mengatur jarak antarkolom. Dengan begitu, tombol Simpan tetap dapat dicapai dengan menggulir.
+
+**4.**
+
+`GlobalKey<FormState>` memberi akses ke state Form. Setiap `validator` memeriksa nilai field dan mengembalikan pesan kesalahan atau `null`. Tombol Simpan memanggil `validate()` untuk menjalankan semua validator sebelum data diproses. Contohnya, organisasi yang hanya berisi spasi ditolak setelah `trim()`. `TextInputType.url` hanya membantu menampilkan papan ketik URL. Pengguna tetap dapat menempelkan teks yang tidak valid, sehingga URL harus diperiksa oleh validator.
 
 ### Pengungkapan Penggunaan AI — Tugas 8
 
