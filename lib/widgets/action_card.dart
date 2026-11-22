@@ -1,21 +1,20 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:myportofolio_mobile/theme/portfolio_colors.dart';
 
-/// Data and card widget for an action on the portfolio home screen.
+/// Describes an action available on the portfolio home screen.
 class ItemHomepage {
   final String name;
   final IconData icon;
   final Color color;
   final Color foregroundColor;
   final Color iconColor;
-  final List<String>? details;
 
   ItemHomepage(
     this.name,
     this.icon,
     this.color, {
-    this.details,
-    this.foregroundColor = Colors.white,
-    this.iconColor = Colors.white,
+    this.foregroundColor = onDark,
+    this.iconColor = onDark,
   });
 }
 
