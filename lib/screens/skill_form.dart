@@ -1,9 +1,10 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:myportofolio_mobile/data/skill_store.dart';
+import 'package:myportofolio_mobile/models/skill.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
+import 'package:myportofolio_mobile/screens/experience_form.dart';
 
-const Color _pine = Color(0xFF2F4F4F);
-const Color _cream = Color(0xFFF5F1E8);
-const Color _softMint = Color(0xFFA9C5A0);
+import 'package:myportofolio_mobile/theme/portfolio_colors.dart';
 
 class SkillFormPage extends StatefulWidget {
   const SkillFormPage({super.key});
@@ -16,17 +17,8 @@ class _SkillFormPageState extends State<SkillFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _skillNameController = TextEditingController();
 
-  String _category = 'Programming';
-  String _level = 'Intermediate';
-
-  final List<String> _categories = [
-    'Programming',
-    'Web Development',
-    'Tools & Platforms',
-    'Other',
-  ];
-
-  final List<String> _levels = ['Beginner', 'Intermediate', 'Advanced'];
+  SkillCategory _category = SkillCategory.language;
+  SkillProficiency _level = SkillProficiency.intermediate;
 
   @override
   void dispose() {
@@ -37,17 +29,25 @@ class _SkillFormPageState extends State<SkillFormPage> {
   void _showSkillSummary() {
     if (!_formKey.currentState!.validate()) return;
 
+    final skill = Skill(
+      name: _skillNameController.text.trim(),
+      category: _category,
+      proficiency: _level,
+    );
+    skillStore.add(skill);
+
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Skill berhasil ditambahkan!'),
+        scrollable: true,
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Nama skill: ${_skillNameController.text.trim()}'),
-            Text('Kategori: $_category'),
-            Text('Tingkat kemahiran: $_level'),
+            Text('Nama skill: ${skill.name}'),
+            Text('Kategori: ${skill.category.label}'),
+            Text('Tingkat kemahiran: ${skill.proficiency.label}'),
           ],
         ),
         actions: [
@@ -57,8 +57,8 @@ class _SkillFormPageState extends State<SkillFormPage> {
               _formKey.currentState!.reset();
               _skillNameController.clear();
               setState(() {
-                _category = _categories.first;
-                _level = 'Intermediate';
+                _category = SkillCategory.language;
+                _level = SkillProficiency.intermediate;
               });
             },
             child: const Text('OK'),
@@ -71,11 +71,11 @@ class _SkillFormPageState extends State<SkillFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _cream,
+      backgroundColor: cream,
       appBar: AppBar(
         title: const Text('Tambah Skill'),
-        backgroundColor: _pine,
-        foregroundColor: Colors.white,
+        backgroundColor: pine,
+        foregroundColor: onDark,
       ),
       drawer: LeftDrawer(
         onHome: () {
@@ -83,6 +83,13 @@ class _SkillFormPageState extends State<SkillFormPage> {
           Navigator.pop(context);
         },
         onAddSkill: () => Navigator.pop(context),
+        onAddExperience: () {
+          Navigator.pop(context);
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const ExperienceFormPage()),
+          );
+        },
       ),
       body: LayoutBuilder(
         builder: (context, constraints) => SingleChildScrollView(
@@ -91,13 +98,7 @@ class _SkillFormPageState extends State<SkillFormPage> {
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [_cream, _softMint, _cream],
-                ),
-              ),
+              decoration: portfolioBackground,
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -115,8 +116,12 @@ class _SkillFormPageState extends State<SkillFormPage> {
                           ),
                         ),
                         validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
+                          final name = value?.trim() ?? '';
+                          if (name.isEmpty) {
                             return 'Nama skill tidak boleh kosong!';
+                          }
+                          if (name.runes.length > 100) {
+                            return 'Nama skill maksimal 100 karakter.';
                           }
                           return null;
                         },
@@ -124,19 +129,20 @@ class _SkillFormPageState extends State<SkillFormPage> {
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: DropdownButtonFormField<String>(
-                        initialValue: _category,
+                      child: DropdownButtonFormField<SkillCategory>(
+                        initialValue: SkillCategory.language,
+                        isExpanded: true,
                         decoration: InputDecoration(
                           labelText: 'Kategori Skill',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(5),
                           ),
                         ),
-                        items: _categories
+                        items: SkillCategory.values
                             .map(
                               (category) => DropdownMenuItem(
                                 value: category,
-                                child: Text(category),
+                                child: Text(category.label),
                               ),
                             )
                             .toList(),
@@ -149,19 +155,19 @@ class _SkillFormPageState extends State<SkillFormPage> {
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: DropdownButtonFormField<String>(
-                        initialValue: _level,
+                      child: DropdownButtonFormField<SkillProficiency>(
+                        initialValue: SkillProficiency.intermediate,
                         decoration: InputDecoration(
                           labelText: 'Tingkat Kemahiran',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(5),
                           ),
                         ),
-                        items: _levels
+                        items: SkillProficiency.values
                             .map(
                               (level) => DropdownMenuItem(
                                 value: level,
-                                child: Text(level),
+                                child: Text(level.label),
                               ),
                             )
                             .toList(),

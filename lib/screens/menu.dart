@@ -1,15 +1,11 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/screens/skill_form.dart';
+import 'package:myportofolio_mobile/screens/experience_form.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
-import 'package:myportofolio_mobile/widgets/project_card.dart';
-
-const Color pine = Color(0xFF2F4F4F);
-const Color sage = Color(0xFF587A62);
-const Color gold = Color(0xFFC9A227);
-const Color ivory = Color(0xFFFBF8F1);
-const Color ink = Color(0xFF1F2D2D);
-const Color cream = Color(0xFFF5F1E8);
-const Color softMint = Color(0xFFA9C5A0);
+import 'package:myportofolio_mobile/widgets/action_card.dart';
+import 'package:myportofolio_mobile/data/experience_store.dart';
+import 'package:myportofolio_mobile/data/skill_store.dart';
+import 'package:myportofolio_mobile/theme/portfolio_colors.dart';
 
 /// Halaman utama portofolio, termasuk profil, menu aksi, dan umpan balik.
 class MyHomePage extends StatelessWidget {
@@ -20,24 +16,11 @@ class MyHomePage extends StatelessWidget {
   final String kelas = "PBP D";
 
   final List<ItemHomepage> items = [
-    ItemHomepage(
-      "Lihat Skills",
-      Icons.psychology,
-      pine,
-      details: ["Java", "Python", "HTML5", "CSS3"],
-      foregroundColor: Colors.white,
-      iconColor: ivory,
-    ),
+    ItemHomepage("Lihat Skills", Icons.psychology, pine, iconColor: ivory),
     ItemHomepage(
       "Lihat Experience",
       Icons.work_outline,
       sage,
-      details: [
-        "Academic Staff & Tutor (Quantitative Reasoning)",
-        "Staff Intern - Academic & Career Development",
-        "Teaching Assistant - Univariate Calculus",
-      ],
-      foregroundColor: Colors.white,
       iconColor: ivory,
     ),
     ItemHomepage(
@@ -59,9 +42,7 @@ class MyHomePage extends StatelessWidget {
   final ItemHomepage logoutItem = ItemHomepage(
     'Logout',
     Icons.logout,
-    const Color(0xFFB23A48),
-    foregroundColor: Colors.white,
-    iconColor: Colors.white,
+    logoutRed,
   );
 
   /// Meminta konfirmasi Logout, lalu menampilkan umpan balik setelah dialog ditutup.
@@ -101,12 +82,12 @@ class MyHomePage extends StatelessWidget {
       ..showSnackBar(
         SnackBar(
           content: Text('Kamu telah menekan tombol ${item.name}!'),
-          action: item.details == null || item.details!.isEmpty
-              ? null
-              : SnackBarAction(
+          action: item.name == 'Lihat Skills' || item.name == 'Lihat Experience'
+              ? SnackBarAction(
                   label: 'Lihat',
                   onPressed: () => _showItemDetails(context, item),
-                ),
+                )
+              : null,
         ),
       );
 
@@ -115,13 +96,24 @@ class MyHomePage extends StatelessWidget {
         context,
         MaterialPageRoute(builder: (context) => const SkillFormPage()),
       );
+    } else if (item.name == 'Tambah Experience') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ExperienceFormPage()),
+      );
     }
   }
 
   /// Menampilkan rincian item dalam modal bottom sheet.
   void _showItemDetails(BuildContext context, ItemHomepage item) {
-    final details = item.details;
-    if (details == null || details.isEmpty) return;
+    final details = <String>[
+      if (item.name == 'Lihat Skills')
+        for (final skill in skillStore.entries.reversed)
+          '${skill.name} — ${skill.category.label} · ${skill.proficiency.label}',
+      if (item.name == 'Lihat Experience')
+        for (final entry in experienceStore.entries.reversed)
+          '${entry.title} — ${entry.organization}',
+    ];
 
     showModalBottomSheet<void>(
       context: context,
@@ -130,7 +122,7 @@ class MyHomePage extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) => SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -145,6 +137,12 @@ class MyHomePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
+              if (details.isEmpty)
+                Text(
+                  item.name == 'Lihat Skills'
+                      ? 'Belum ada skill yang ditambahkan.'
+                      : 'Belum ada pengalaman yang ditambahkan.',
+                ),
               ...details.map(
                 (detail) => ListTile(
                   contentPadding: EdgeInsets.zero,
@@ -168,25 +166,30 @@ class MyHomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'MyPortfolio',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: pine,
+        foregroundColor: onDark,
       ),
       drawer: LeftDrawer(
         onHome: () => Navigator.pop(context),
-        onAddSkill: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const SkillFormPage()),
-        ),
+        onAddSkill: () {
+          Navigator.pop(context);
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const SkillFormPage()),
+          );
+        },
+        onAddExperience: () {
+          Navigator.pop(context);
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ExperienceFormPage()),
+          );
+        },
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [cream, softMint, cream],
-          ),
-        ),
+        decoration: portfolioBackground,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -205,11 +208,7 @@ class MyHomePage extends StatelessWidget {
                       const CircleAvatar(
                         radius: 30,
                         backgroundColor: pine,
-                        child: Icon(
-                          Icons.person,
-                          color: Colors.white,
-                          size: 32,
-                        ),
+                        child: Icon(Icons.person, color: onDark, size: 32),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -265,7 +264,7 @@ class MyHomePage extends StatelessWidget {
                 crossAxisCount: 2,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                childAspectRatio: 1.45,
+                mainAxisExtent: 152,
                 children: items.map((ItemHomepage item) {
                   return ItemCard(
                     item,
