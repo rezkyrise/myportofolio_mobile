@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/screens/menu.dart';
+import 'package:myportofolio_mobile/theme/portfolio_colors.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,8 +15,9 @@ class MyApp extends StatelessWidget {
       title: 'MyPortfolio',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
-          secondary: Colors.amber[700],
+          seedColor: pine,
+          primary: pine,
+          secondary: portfolioSecondary,
         ),
         useMaterial3: true,
       ),
