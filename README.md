@@ -5,11 +5,14 @@ Aplikasi portofolio pribadi multiplatform yang dibuat dengan Flutter dan Dart. H
 ## Fitur
 
 - Kartu profil berisi NPM, nama, dan kelas.
-- Lima kartu aksi dengan warna berbeda (Lihat Skills, Lihat Experience, Tambah Skill, Tambah Experience, Logout).
-- SnackBar muncul saat kartu ditekan dengan pesan sesuai nama tombol.
-- Bottom sheet detail untuk Skills dan Experience.
-- Dialog konfirmasi sebelum Logout.
-- Form Tambah Skill dengan validasi dan dialog ringkasan.
+- Lima kartu aksi untuk melihat Skill dan Experience, menambah data, serta membuka konfirmasi Logout.
+- SnackBar dan bottom sheet untuk melihat Skill dan Experience yang tersimpan.
+- Form Tambah Skill dengan validasi nama, kategori, tingkat kemahiran, dan dialog ringkasan.
+- Form Tambah Experience dengan validasi kolom, kategori, tanggal, URL thumbnail, serta dialog ringkasan.
+- Pratinjau gambar dari URL thumbnail yang valid.
+- Data Skill dan Experience yang baru ditambahkan muncul di daftar selama sesi aplikasi.
+- Drawer bersama untuk berpindah antara Home, Tambah Skill, dan Tambah Experience.
+- Tata letak formulir yang dapat digulir pada layar sempit atau saat keyboard terbuka.
 
 ## Struktur Proyek
 
@@ -22,23 +25,30 @@ myportofolio_mobile/
 ├── web/                      # berkas platform Web
 ├── windows/                  # berkas platform Windows
 ├── lib/
-│   ├── main.dart                     # entry point, MyApp, dan MaterialApp
+│   ├── main.dart                    # entry point, MyApp, dan tema aplikasi
+│   ├── data/
+│   │   ├── experience_store.dart    # penyimpanan Experience selama sesi
+│   │   └── skill_store.dart        # penyimpanan Skill selama sesi
+│   ├── models/
+│   │   ├── experience.dart          # model dan kategori Experience
+│   │   └── skill.dart               # model, kategori, dan tingkat Skill
 │   ├── screens/
-│   │   ├── menu.dart                # halaman utama dan InfoCard
-│   │   └── skill_form.dart          # form tambah skill
+│   │   ├── menu.dart                # halaman utama dan daftar portofolio
+│   │   ├── skill_form.dart          # formulir tambah Skill
+│   │   └── experience_form.dart     # formulir tambah Experience
+│   ├── theme/
+│   │   └── portfolio_colors.dart   # palet warna dan latar bersama
 │   └── widgets/
-│       ├── left_drawer.dart         # drawer navigasi
-│       └── project_card.dart        # model item dan kartu aksi
+│       ├── left_drawer.dart        # drawer navigasi bersama
+│       └── action_card.dart        # model item dan kartu aksi
 ├── test/
-│   └── widget_test.dart      # pengujian widget bawaan proyek
-├── .idea/                    # konfigurasi IDE lokal
-├── .gitignore                # berkas/folder yang diabaikan Git
-├── .metadata                 # metadata proyek Flutter
-├── analysis_options.yaml     # aturan analisis Dart
-├── myportofolio_mobile.iml   # konfigurasi modul IDE
-├── pubspec.yaml              # metadata, dependensi, dan aset proyek
-├── pubspec.lock              # versi dependensi yang terkunci
-└── README.md                 # dokumentasi dan refleksi tugas
+│   └── widget_test.dart            # tes navigasi, validasi, dan penyimpanan
+├── .gitignore                      # berkas/folder yang diabaikan Git
+├── .metadata                       # metadata proyek Flutter
+├── analysis_options.yaml           # aturan analisis Dart
+├── pubspec.yaml                    # metadata, dependensi, dan aset
+├── pubspec.lock                    # versi dependensi yang terkunci
+└── README.md                       # dokumentasi dan refleksi tugas
 ```
 
 Folder `.git/` menyimpan metadata repositori. Folder `build/` dan `.dart_tool/` dibuat otomatis saat proyek dibangun atau dianalisis; semuanya tidak dicantumkan sebagai sumber utama aplikasi.
@@ -65,6 +75,7 @@ Analisis terakhir pada proyek ini menghasilkan `No issues found`.
 - **Tutorial 08:** setup Flutter, `InfoCard` dan `ItemCard`.
 - **Tugas 7:** profil pribadi, 5 kartu aksi berwarna, SnackBar, bottom sheet detail, konfirmasi Logout.
 - **Tutorial 09:** drawer, navigasi dan form tambah skill; halaman dan widget dirapikan ke folder terpisah.
+- **Tugas 8:** membuat formulir Experience dengan validasi judul, organisasi, deskripsi, kategori, tanggal, dan URL thumbnail; menampilkan ringkasan isian setelah valid; menambahkan pratinjau thumbnail; menghubungkan formulir ke kartu Home dan drawer; menyimpan Skill dan Experience selama sesi aplikasi agar tampil di daftar masing-masing; serta menguji alur formulir dan layout layar sempit.
 
 ## Pertanyaan Reflektif
 
@@ -100,10 +111,36 @@ Analisis terakhir pada proyek ini menghasilkan `No issues found`.
 
 6. **Hot reload dan hot restart:** hot reload menerapkan perubahan kode Dart ke aplikasi yang sedang berjalan, membangun ulang widget tree, dan umumnya mempertahankan state. Hot restart menjalankan ulang aplikasi dari `main` dan menghapus state dalam memori. Perubahan nilai `const` seperti warna `pine` atau `sage` dapat diterapkan melalui hot reload. Perubahan initializer variabel global atau field statis yang menyimpan state memerlukan hot restart; perubahan kode native memerlukan full restart. Lihat [panduan resmi Flutter tentang hot reload](https://docs.flutter.dev/tools/hot-reload).
 
-## Pengungkapan Penggunaan AI
+### Pengungkapan Penggunaan AI — Tugas 7
 
 **Tools:** OpenAI Codex di ChatGPT digunakan sebagai pendamping selama pengerjaan. Bagian yang dibantu AI:
 - Saran palet warna hex (pine, sage, gold, ivory, ink, cream, soft mint) dan pemilihan ikon.
 - Saran tata letak: kartu profil dengan avatar, grid 2 kolom, rasio kartu, dan posisi Logout.
 - Pengecekan kesesuaian kode terhadap checklist dan rubrik tugas.
 - Peninjauan README ini.
+
+### Tugas 8
+
+1. Navigasi Antarhalaman
+| Metode | Perbedaan |
+|---|---|
+| `Navigator.push()` | Menambahkan halaman baru di atas halaman aktif. |
+| `Navigator.pushReplacement()` | Mengganti halaman aktif dengan halaman baru. |
+| `Navigator.pop()` | Menutup halaman teratas dan kembali ke halaman sebelumnya. |
+
+Kartu **Tambah Experience** memakai `Navigator.push()`. Opsi **Home** pada drawer menutup drawer dan kembali ke halaman utama melalui `Navigator.pop()` sesuai susunan halaman yang dibuka. Dari formulir Experience, `Navigator.popUntil()` digunakan untuk kembali ke route pertama, yaitu Home.
+
+2. `Scaffold` menyediakan kerangka halaman yang menampung `AppBar`, `Drawer`, dan body. Pemakaian susunan yang sama di Home dan formulir membuat navigasi serta bagian atas halaman mudah dikenali. Contohnya, warna pine digunakan pada `AppBar` Home dan halaman Tambah Experience.
+
+3. `ListView` dipilih agar seluruh formulir dapat digulir saat layar sempit atau keyboard terbuka. `Padding` memberi ruang dari tepi layar, sedangkan `SizedBox` mengatur jarak antarkolom. Dengan begitu, tombol Simpan tetap dapat dicapai dengan menggulir.
+
+4. `GlobalKey<FormState>` memberi akses ke state Form. Setiap `validator` memeriksa nilai field dan mengembalikan pesan kesalahan atau `null`. Tombol Simpan memanggil `validate()` untuk menjalankan semua validator sebelum data diproses. Contohnya, organisasi yang hanya berisi spasi ditolak setelah `trim()`. `TextInputType.url` hanya membantu menampilkan papan ketik URL. Pengguna tetap dapat menempelkan teks yang tidak valid, sehingga URL harus diperiksa oleh validator.
+
+### Pengungkapan Penggunaan AI — Tugas 8
+
+**Tools:** OpenAI Codex di ChatGPT digunakan sebagai pendamping selama pengerjaan. Bagian yang dibantu AI:
+- Memnyarankan validator seperti kolom wajib, batas karakter, URL thumbnail, tanggal mulai, dan tanggal selesai.
+- Menjelaskan dan membantu membuat showDatePicker() dan FormField<DateTime> bekerja, termasuk pilihan tanggal selesai yang tidak boleh lebih awal dari tanggal mulai.
+- Menambahkan pratinjau gambar dari URL thumbnail yang valid serta pesan jika gambar gagal dimuat.
+- Membantu menghubungkan data Skill dan Experience yang disimpan selama sesi ke daftar Lihat Skills dan Lihat Experience.
+- Pengecekan kesesuaian kode terhadap checklist dan rubrik tugas.
