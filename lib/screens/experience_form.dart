@@ -2,8 +2,11 @@ import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/models/experience.dart';
 import 'package:myportofolio_mobile/screens/skill_form.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
-import 'package:myportofolio_mobile/data/experience_store.dart';
 import 'package:myportofolio_mobile/theme/portfolio_colors.dart';
+import 'package:myportofolio_mobile/services/api_client.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
+import 'package:myportofolio_mobile/widgets/auth_guard.dart';
+import 'package:provider/provider.dart';
 
 class ExperienceFormPage extends StatefulWidget {
   const ExperienceFormPage({super.key});
@@ -93,8 +96,9 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
     );
   }
 
-  void _submitExperience() {
+  Future<void> _submitExperience() async {
     if (!_formKey.currentState!.validate()) return;
+    if (!await ensureLoggedIn(context) || !mounted) return;
 
     final thumbnail = _thumbnailController.text.trim();
     final experience = Experience(
@@ -106,7 +110,33 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
       endedAt: _endDateKey.currentState!.value,
       thumbnail: thumbnail.isEmpty ? null : thumbnail,
     );
-    experienceStore.add(experience);
+
+    final authState = context.read<AuthState>();
+    final apiClient = context.read<ApiClient>();
+    final token = authState.token!;
+
+    try {
+      await apiClient.createExperience(experience, token: token);
+    } on ApiException catch (error) {
+      if (error.statusCode == 401) {
+        await authState.logout();
+      }
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            error.statusCode == 403
+                ? 'Akun ini tidak memiliki izin untuk menambah Experience.'
+                : 'Gagal menyimpan Experience (${error.statusCode}).',
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (!mounted) return;
 
     final dates = MaterialLocalizations.of(context);
     final start = dates.formatMediumDate(experience.startedAt);

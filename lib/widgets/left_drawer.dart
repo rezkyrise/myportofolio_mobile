@@ -1,5 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/theme/portfolio_colors.dart';
+import 'package:myportofolio_mobile/screens/login_screen.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
+import 'package:provider/provider.dart';
 
 class LeftDrawer extends StatelessWidget {
   final VoidCallback onHome;
@@ -15,6 +18,7 @@ class LeftDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isLoggedIn = context.watch<AuthState>().isLoggedIn;
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -59,6 +63,22 @@ class LeftDrawer extends StatelessWidget {
             leading: const Icon(Icons.work_outline),
             title: const Text('Tambah Experience'),
             onTap: onAddExperience,
+          ),
+          ListTile(
+            leading: Icon(isLoggedIn ? Icons.logout : Icons.login),
+            title: Text(isLoggedIn ? 'Logout' : 'Login'),
+            onTap: () async {
+              Navigator.pop(context);
+
+              if (isLoggedIn) {
+                await context.read<AuthState>().logout();
+              } else {
+                await Navigator.push<bool>(
+                  context,
+                  MaterialPageRoute<bool>(builder: (_) => const LoginScreen()),
+                );
+              }
+            },
           ),
         ],
       ),

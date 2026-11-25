@@ -1,10 +1,12 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:myportofolio_mobile/data/skill_store.dart';
 import 'package:myportofolio_mobile/models/skill.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 import 'package:myportofolio_mobile/screens/experience_form.dart';
-
 import 'package:myportofolio_mobile/theme/portfolio_colors.dart';
+import 'package:myportofolio_mobile/services/api_client.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
+import 'package:myportofolio_mobile/widgets/auth_guard.dart';
+import 'package:provider/provider.dart';
 
 class SkillFormPage extends StatefulWidget {
   const SkillFormPage({super.key});
@@ -26,15 +28,41 @@ class _SkillFormPageState extends State<SkillFormPage> {
     super.dispose();
   }
 
-  void _showSkillSummary() {
+  Future<void> _showSkillSummary() async {
     if (!_formKey.currentState!.validate()) return;
+    if (!await ensureLoggedIn(context) || !mounted) return;
 
     final skill = Skill(
       name: _skillNameController.text.trim(),
       category: _category,
       proficiency: _level,
     );
-    skillStore.add(skill);
+    final authState = context.read<AuthState>();
+    final apiClient = context.read<ApiClient>();
+    final token = authState.token!;
+
+    try {
+      await apiClient.createSkill(skill, token: token);
+    } on ApiException catch (error) {
+      if (error.statusCode == 401) {
+        await authState.logout();
+      }
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            error.statusCode == 403
+                ? 'Akun ini tidak memiliki izin untuk menambah Skill.'
+                : 'Gagal menyimpan Skill (${error.statusCode}).',
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (!mounted) return;
 
     showDialog<void>(
       context: context,

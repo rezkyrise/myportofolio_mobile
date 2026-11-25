@@ -3,9 +3,12 @@ import 'package:myportofolio_mobile/screens/skill_form.dart';
 import 'package:myportofolio_mobile/screens/experience_form.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 import 'package:myportofolio_mobile/widgets/action_card.dart';
-import 'package:myportofolio_mobile/data/experience_store.dart';
-import 'package:myportofolio_mobile/data/skill_store.dart';
+import 'package:myportofolio_mobile/services/api_client.dart';
+import 'package:provider/provider.dart';
 import 'package:myportofolio_mobile/theme/portfolio_colors.dart';
+import 'package:myportofolio_mobile/widgets/auth_guard.dart';
+import 'package:myportofolio_mobile/screens/login_screen.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
 
 /// Halaman utama portofolio, termasuk profil, menu aksi, dan umpan balik.
 class MyHomePage extends StatelessWidget {
@@ -39,14 +42,9 @@ class MyHomePage extends StatelessWidget {
     ),
   ];
 
-  final ItemHomepage logoutItem = ItemHomepage(
-    'Logout',
-    Icons.logout,
-    logoutRed,
-  );
-
   /// Meminta konfirmasi Logout, lalu menampilkan umpan balik setelah dialog ditutup.
   Future<void> _confirmLogout(BuildContext context) async {
+    final authState = context.read<AuthState>();
     final shouldLogout = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -65,55 +63,102 @@ class MyHomePage extends StatelessWidget {
       ),
     );
 
-    if (context.mounted) {
-      final message = shouldLogout == true
-          ? 'Kamu telah menekan tombol Logout! Fitur logout belum terhubung.'
-          : 'Kamu telah menekan tombol Logout!';
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(message)));
+    if (shouldLogout == true) {
+      await authState.logout();
     }
+
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          shouldLogout == true ? 'Logout berhasil.' : 'Logout dibatalkan.',
+        ),
+      ),
+    );
   }
 
   /// Menampilkan umpan balik dan membuka detail bila item memilikinya.
-  void _handleItemTap(BuildContext context, ItemHomepage item) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text('Kamu telah menekan tombol ${item.name}!'),
-          action: item.name == 'Lihat Skills' || item.name == 'Lihat Experience'
-              ? SnackBarAction(
-                  label: 'Lihat',
-                  onPressed: () => _showItemDetails(context, item),
-                )
-              : null,
-        ),
-      );
-
+  Future<void> _handleItemTap(BuildContext context, ItemHomepage item) async {
     if (item.name == 'Tambah Skill') {
+      if (!await ensureLoggedIn(context) || !context.mounted) return;
+
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const SkillFormPage()),
+        MaterialPageRoute(builder: (_) => const SkillFormPage()),
       );
     } else if (item.name == 'Tambah Experience') {
+      if (!await ensureLoggedIn(context) || !context.mounted) return;
+
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const ExperienceFormPage()),
+        MaterialPageRoute(builder: (_) => const ExperienceFormPage()),
       );
+    } else {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text('Kamu telah menekan tombol ${item.name}!'),
+            action:
+                item.name == 'Lihat Skills' || item.name == 'Lihat Experience'
+                ? SnackBarAction(
+                    label: 'Lihat',
+                    onPressed: () => _showItemDetails(context, item),
+                  )
+                : null,
+          ),
+        );
     }
+  }
+
+  Future<List<Map<String, Object?>>> _loadItemDetails(
+    BuildContext context,
+    ItemHomepage item,
+  ) async {
+    final apiClient = context.read<ApiClient>();
+
+    if (item.name == 'Lihat Skills') {
+      final skills = await apiClient.getSkills();
+
+      return skills
+          .map(
+            (skill) => <String, Object?>{
+              'title': skill.name,
+              'subtitle':
+                  '${skill.category.label} · ${skill.proficiency.label}',
+              'details': <String>[
+                'Kategori: ${skill.category.label}',
+                'Tingkat kemahiran: ${skill.proficiency.label}',
+                if (skill.iconSlug.isNotEmpty) 'Icon slug: ${skill.iconSlug}',
+              ],
+            },
+          )
+          .toList();
+    }
+
+    final experiences = await apiClient.getExperiences();
+
+    return experiences
+        .map(
+          (entry) => <String, Object?>{
+            'title': entry.title,
+            'subtitle': entry.organization,
+            'details': <String>[
+              'Kategori: ${entry.category.label}',
+              'Deskripsi: ${entry.description}',
+              'Mulai: ${entry.startedAt.toIso8601String().split('T').first}',
+              'Selesai: ${entry.endedAt?.toIso8601String().split('T').first ?? 'Masih berlangsung'}',
+            ],
+            'thumbnail': entry.thumbnail,
+          },
+        )
+        .toList();
   }
 
   /// Menampilkan rincian item dalam modal bottom sheet.
   void _showItemDetails(BuildContext context, ItemHomepage item) {
-    final details = <String>[
-      if (item.name == 'Lihat Skills')
-        for (final skill in skillStore.entries.reversed)
-          '${skill.name} — ${skill.category.label} · ${skill.proficiency.label}',
-      if (item.name == 'Lihat Experience')
-        for (final entry in experienceStore.entries.reversed)
-          '${entry.title} — ${entry.organization}',
-    ];
+    var detailsFuture = _loadItemDetails(context, item);
 
     showModalBottomSheet<void>(
       context: context,
@@ -121,36 +166,89 @@ class MyHomePage extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                item.name,
-                style: const TextStyle(
-                  color: ink,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => SafeArea(
+          child: FutureBuilder<List<Map<String, Object?>>>(
+            future: detailsFuture,
+            builder: (context, snapshot) {
+              final details = snapshot.data ?? const <Map<String, Object?>>[];
+
+              return RefreshIndicator(
+                onRefresh: () async {
+                  final refreshedFuture = _loadItemDetails(context, item);
+                  setModalState(() {
+                    detailsFuture = refreshedFuture;
+                  });
+
+                  try {
+                    await refreshedFuture;
+                  } catch (_) {
+                    // FutureBuilder menampilkan error dari request yang gagal.
+                  }
+                },
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                  children: [
+                    Text(
+                      item.name,
+                      style: const TextStyle(
+                        color: ink,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    if (snapshot.connectionState == ConnectionState.waiting)
+                      const Padding(
+                        padding: EdgeInsets.all(24),
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    else if (snapshot.hasError)
+                      Text('Gagal memuat data: ${snapshot.error}')
+                    else if (details.isEmpty)
+                      Text(
+                        item.name == 'Lihat Skills'
+                            ? 'Belum ada skill.'
+                            : 'Belum ada pengalaman.',
+                      )
+                    else
+                      ...details.map((entry) {
+                        final detailLines = entry['details']! as List<String>;
+                        final thumbnail = entry['thumbnail'] as String?;
+
+                        return Card(
+                          color: ivory,
+                          child: ExpansionTile(
+                            leading: Icon(item.icon, color: pine),
+                            title: Text(entry['title']! as String),
+                            subtitle: Text(entry['subtitle']! as String),
+                            children: [
+                              ...detailLines.map(
+                                (line) =>
+                                    ListTile(dense: true, title: Text(line)),
+                              ),
+                              if (thumbnail != null && thumbnail.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Image.network(
+                                    thumbnail,
+                                    height: 180,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, _, _) => const Text(
+                                      'Thumbnail tidak dapat dimuat.',
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      }),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 12),
-              if (details.isEmpty)
-                Text(
-                  item.name == 'Lihat Skills'
-                      ? 'Belum ada skill yang ditambahkan.'
-                      : 'Belum ada pengalaman yang ditambahkan.',
-                ),
-              ...details.map(
-                (detail) => ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(item.icon, color: pine),
-                  title: Text(detail, style: const TextStyle(color: ink)),
-                ),
-              ),
-            ],
+              );
+            },
           ),
         ),
       ),
@@ -160,6 +258,7 @@ class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Scaffold menyediakan struktur visual dasar halaman (AppBar, Body, SnackBar).
+    final isLoggedIn = context.watch<AuthState>().isLoggedIn;
     return Scaffold(
       backgroundColor: cream,
       // AppBar menampilkan bar bagian atas halaman aplikasi.
@@ -173,15 +272,17 @@ class MyHomePage extends StatelessWidget {
       ),
       drawer: LeftDrawer(
         onHome: () => Navigator.pop(context),
-        onAddSkill: () {
+        onAddSkill: () async {
           Navigator.pop(context);
+          if (!await ensureLoggedIn(context) || !context.mounted) return;
           Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const SkillFormPage()),
           );
         },
-        onAddExperience: () {
+        onAddExperience: () async {
           Navigator.pop(context);
+          if (!await ensureLoggedIn(context) || !context.mounted) return;
           Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const ExperienceFormPage()),
@@ -276,9 +377,22 @@ class MyHomePage extends StatelessWidget {
               SizedBox(
                 height: 72,
                 child: ItemCard(
-                  logoutItem,
+                  ItemHomepage(
+                    isLoggedIn ? 'Logout' : 'Login',
+                    isLoggedIn ? Icons.logout : Icons.login,
+                    isLoggedIn ? logoutRed : pine,
+                  ),
                   isCompact: true,
-                  onPressed: () => _confirmLogout(context),
+                  onPressed: () {
+                    if (isLoggedIn) {
+                      _confirmLogout(context);
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      );
+                    }
+                  },
                 ),
               ),
             ],
