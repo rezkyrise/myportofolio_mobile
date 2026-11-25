@@ -5,19 +5,23 @@ Aplikasi portofolio pribadi multiplatform yang dibuat dengan Flutter dan Dart. H
 ## Fitur
 
 - Kartu profil berisi NPM, nama, dan kelas.
-- Lima kartu aksi untuk melihat Skill dan Experience, menambah data, serta membuka konfirmasi Logout.
-- SnackBar dan bottom sheet untuk melihat Skill dan Experience yang tersimpan.
+- Login menggunakan token dari backend Django.
+- Kartu aksi untuk melihat Skill dan Experience, menambah data, serta Logout dengan konfirmasi.
+- Skill dan Experience dimuat dari backend dan dapat diperbarui dari aplikasi.
 - Form Tambah Skill dengan validasi nama, kategori, tingkat kemahiran, dan dialog ringkasan.
 - Form Tambah Experience dengan validasi kolom, kategori, tanggal, URL thumbnail, serta dialog ringkasan.
 - Pratinjau gambar dari URL thumbnail yang valid.
-- Data Skill dan Experience yang baru ditambahkan muncul di daftar selama sesi aplikasi.
-- Drawer bersama untuk berpindah antara Home, Tambah Skill, dan Tambah Experience.
+- Data Skill dan Experience yang baru ditambahkan dikirim ke backend.
+- Drawer bersama untuk navigasi aplikasi.
 - Tata letak formulir yang dapat digulir pada layar sempit atau saat keyboard terbuka.
 
 ## Struktur Proyek
 
 ```text
 myportofolio_mobile/
+├── .github/
+│   └── workflows/
+│       └── main.yaml             # workflow CI dan build APK
 ├── android/                  # berkas platform Android
 ├── ios/                      # berkas platform iOS
 ├── linux/                    # berkas platform Linux
@@ -26,29 +30,32 @@ myportofolio_mobile/
 ├── windows/                  # berkas platform Windows
 ├── lib/
 │   ├── main.dart                    # entry point, MyApp, dan tema aplikasi
-│   ├── data/
-│   │   ├── experience_store.dart    # penyimpanan Experience selama sesi
-│   │   └── skill_store.dart        # penyimpanan Skill selama sesi
+│   ├── config.dart                 # konfigurasi aplikasi, termasuk URL API
 │   ├── models/
-│   │   ├── experience.dart          # model dan kategori Experience
-│   │   └── skill.dart               # model, kategori, dan tingkat Skill
+│   │   ├── experience.dart         # model Experience
+│   │   └── skill.dart              # model Skill
 │   ├── screens/
+│   │   ├── experience_form.dart    # formulir Experience
+│   │   ├── login_screen.dart      # halaman login
 │   │   ├── menu.dart                # halaman utama dan daftar portofolio
-│   │   ├── skill_form.dart          # formulir tambah Skill
-│   │   └── experience_form.dart     # formulir tambah Experience
+│   │   └── skill_form.dart        # formulir Skill
+│   ├── services/
+│   │   ├── api_client.dart        # komunikasi dengan backend API
+│   │   └── auth_state.dart        # status autentikasi dan token
 │   ├── theme/
 │   │   └── portfolio_colors.dart   # palet warna dan latar bersama
 │   └── widgets/
-│       ├── left_drawer.dart        # drawer navigasi bersama
-│       └── action_card.dart        # model item dan kartu aksi
+│       ├── action_card.dart       # kartu aksi
+│       ├── auth_guard.dart        # pengarah tampilan berdasarkan login
+│       └── left_drawer.dart       # drawer navigasi
 ├── test/
-│   └── widget_test.dart            # tes navigasi, validasi, dan penyimpanan
+│   └── widget_test.dart            # tes widget dan alur aplikasi
 ├── .gitignore                      # berkas/folder yang diabaikan Git
 ├── .metadata                       # metadata proyek Flutter
 ├── analysis_options.yaml           # aturan analisis Dart
 ├── pubspec.yaml                    # metadata, dependensi, dan aset
 ├── pubspec.lock                    # versi dependensi yang terkunci
-└── README.md                       # dokumentasi dan refleksi tugas
+└── README.md                       # dokumentasi proyek
 ```
 
 Folder `.git/` menyimpan metadata repositori. Folder `build/` dan `.dart_tool/` dibuat otomatis saat proyek dibangun atau dianalisis; semuanya tidak dicantumkan sebagai sumber utama aplikasi.
@@ -75,7 +82,7 @@ Analisis terakhir pada proyek ini menghasilkan `No issues found`.
 - **Tutorial 08:** setup Flutter, `InfoCard` dan `ItemCard`.
 - **Tugas 7:** profil pribadi, 5 kartu aksi berwarna, SnackBar, bottom sheet detail, konfirmasi Logout.
 - **Tutorial 09:** drawer, navigasi dan form tambah skill; halaman dan widget dirapikan ke folder terpisah.
-- **Tugas 8:** membuat formulir Experience dengan validasi judul, organisasi, deskripsi, kategori, tanggal, dan URL thumbnail; menampilkan ringkasan isian setelah valid; menambahkan pratinjau thumbnail; menghubungkan formulir ke kartu Home dan drawer; menyimpan Skill dan Experience selama sesi aplikasi agar tampil di daftar masing-masing; serta menguji alur formulir dan layout layar sempit.
+- **Tugas 8:** membuat formulir Experience dengan validasi judul, organisasi, deskripsi, kategori, tanggal, dan URL thumbnail; menampilkan ringkasan isian setelah valid; menambahkan pratinjau thumbnail; menghubungkan formulir ke kartu Home dan drawer; serta menguji alur formulir dan layout layar sempit.
 - **Tutorial 10:** menghubungkan aplikasi Flutter ke API Django untuk Skill dan Experience, menambahkan login token, mengirim formulir terautentikasi, memuat dan memperbarui daftar dari backend, serta menyiapkan build APK melalui GitHub Actions.
 
 ## Pertanyaan Reflektif
