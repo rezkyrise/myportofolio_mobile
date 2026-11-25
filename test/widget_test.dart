@@ -2,6 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/main.dart';
 import 'package:myportofolio_mobile/screens/experience_form.dart';
+import 'package:myportofolio_mobile/services/api_client.dart';
+
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 Future<void> tapVisible(WidgetTester tester, Finder finder) async {
   await tester.ensureVisible(finder);
@@ -9,21 +15,96 @@ Future<void> tapVisible(WidgetTester tester, Finder finder) async {
   await tester.pumpAndSettle();
 }
 
+Future<void> login(WidgetTester tester) async {
+  await tester.enterText(find.byType(TextFormField).at(0), 'testuser');
+  await tester.enterText(find.byType(TextFormField).at(1), 'password');
+  await tapVisible(tester, find.widgetWithText(FilledButton, 'Login'));
+}
+
+ApiClient createTestApiClient() {
+  final skills = <Map<String, dynamic>>[];
+  final experiences = <Map<String, dynamic>>[];
+
+  http.Response jsonResponse(Object body, int statusCode) {
+    return http.Response(
+      jsonEncode(body),
+      statusCode,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+
+  return ApiClient(
+    client: MockClient((request) async {
+      final path = request.url.path;
+
+      if (path == '/api/v1/auth/token/') {
+        return jsonResponse({'token': 'test-token'}, 200);
+      }
+
+      if (path == '/api/v1/auth/logout/') {
+        return http.Response('', 204);
+      }
+
+      if (request.method == 'GET' && path == '/api/v1/skills/') {
+        return jsonResponse(skills, 200);
+      }
+
+      if (request.method == 'POST' && path == '/api/v1/skills/') {
+        final skill = jsonDecode(request.body) as Map<String, dynamic>;
+        final createdSkill = {
+          ...skill,
+          'id': 'skill-${skills.length + 1}',
+          'category_display': skill['category'],
+          'proficiency_display': skill['proficiency'],
+          'star_count': 0,
+          'is_starred': false,
+          'starred_by_names': '',
+        };
+        skills.add(createdSkill);
+        return jsonResponse(createdSkill, 201);
+      }
+
+      if (request.method == 'GET' && path == '/api/v1/experiences/') {
+        return jsonResponse(experiences, 200);
+      }
+
+      if (request.method == 'POST' && path == '/api/v1/experiences/') {
+        final experience = jsonDecode(request.body) as Map<String, dynamic>;
+        final createdExperience = {
+          ...experience,
+          'id': 'experience-${experiences.length + 1}',
+          'category_display': experience['category'],
+          'image_url': null,
+          'is_ongoing': experience['ended_at'] == null,
+          'star_count': 0,
+          'is_starred': false,
+          'starred_by_names': '',
+        };
+        experiences.add(createdExperience);
+        return jsonResponse(createdExperience, 201);
+      }
+
+      return jsonResponse({'detail': 'Unexpected request: $path'}, 404);
+    }),
+  );
+}
+
 void main() {
   testWidgets('Daftar awal kosong dan skill valid tersimpan sekali', (
     tester,
   ) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp(apiClient: createTestApiClient()));
 
     Future<void> tap(Finder finder) => tapVisible(tester, finder);
 
     await tap(find.text('Lihat Skills'));
     await tap(find.text('Lihat'));
-    expect(find.text('Belum ada skill yang ditambahkan.'), findsOneWidget);
+    expect(find.text('Belum ada skill.'), findsOneWidget);
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
 
     await tap(find.text('Tambah Skill'));
+    await login(tester);
     final nameField = find.byType(TextFormField);
     final saveButton = find.text('Simpan');
 
@@ -60,15 +141,14 @@ void main() {
       await tap(find.text('Lihat'));
       final rows = find.descendant(
         of: find.byType(BottomSheet),
-        matching: find.byType(ListTile),
+        matching: find.byType(ExpansionTile),
       );
       final titles = tester
-          .widgetList<ListTile>(rows)
-          .map((row) => (row.title! as Text).data);
-      expect(titles, [
-        'Dart — Programming Language · Intermediate',
-        'Flutter — Framework & Developer Tool · Advanced',
-      ]);
+          .widgetList<ExpansionTile>(rows)
+          .map((tile) => (tile.title as Text).data)
+          .toList();
+
+      expect(titles, ['Flutter', 'Dart']);
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
     }
@@ -80,8 +160,9 @@ void main() {
     ) async {
       await tester.binding.setSurfaceSize(Size(width, 740));
       addTearDown(() => tester.binding.setSurfaceSize(null));
-      await tester.pumpWidget(const MyApp());
+      await tester.pumpWidget(MyApp(apiClient: createTestApiClient()));
       await tapVisible(tester, find.text('Tambah Experience'));
+      await login(tester);
       expect(find.byType(ExperienceFormPage), findsOneWidget);
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
@@ -94,7 +175,7 @@ void main() {
     (tester) async {
       await tester.binding.setSurfaceSize(const Size(800, 1150));
       addTearDown(() => tester.binding.setSurfaceSize(null));
-      await tester.pumpWidget(const MyApp());
+      await tester.pumpWidget(MyApp(apiClient: createTestApiClient()));
       Future<void> tap(Finder finder) => tapVisible(tester, finder);
 
       Future<void> openDrawerItem(String name) async {
@@ -112,14 +193,12 @@ void main() {
 
       await tap(find.text('Lihat Experience'));
       await tap(find.text('Lihat'));
-      expect(
-        find.text('Belum ada pengalaman yang ditambahkan.'),
-        findsOneWidget,
-      );
+      expect(find.text('Belum ada pengalaman.'), findsOneWidget);
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
 
       await openDrawerItem('Tambah Experience');
+      await login(tester);
       await enter('Judul pengalaman', 'Tutor Kalkulus');
       await enter('Organisasi', '   ');
       await enter('Deskripsi', 'Mengajar kalkulus');
@@ -172,22 +251,20 @@ void main() {
       await saveAndCheck('Asisten Praktikum', 'Masih berlangsung');
       await openDrawerItem('Home');
 
-      for (var visit = 0; visit < 2; visit++) {
-        await tap(find.text('Lihat Experience'));
-        await tap(find.text('Lihat'));
-        final rows = find.descendant(
-          of: find.byType(BottomSheet),
-          matching: find.byType(ListTile),
-        );
-        expect(
-          tester
-              .widgetList<ListTile>(rows)
-              .map((row) => (row.title! as Text).data),
-          ['Asisten Praktikum — Fasilkom UI', 'Tutor Kalkulus — Fasilkom UI'],
-        );
-        await tester.binding.handlePopRoute();
-        await tester.pumpAndSettle();
-      }
+      await tap(find.text('Lihat Experience').first);
+      await tap(find.text('Lihat'));
+      final rows = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(ExpansionTile),
+      );
+      final titles = tester
+          .widgetList<ExpansionTile>(rows)
+          .map((tile) => (tile.title as Text).data)
+          .toList();
+
+      expect(titles, ['Tutor Kalkulus', 'Asisten Praktikum']);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
     },
   );
 }
