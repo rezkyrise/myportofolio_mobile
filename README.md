@@ -76,6 +76,7 @@ Analisis terakhir pada proyek ini menghasilkan `No issues found`.
 - **Tugas 7:** profil pribadi, 5 kartu aksi berwarna, SnackBar, bottom sheet detail, konfirmasi Logout.
 - **Tutorial 09:** drawer, navigasi dan form tambah skill; halaman dan widget dirapikan ke folder terpisah.
 - **Tugas 8:** membuat formulir Experience dengan validasi judul, organisasi, deskripsi, kategori, tanggal, dan URL thumbnail; menampilkan ringkasan isian setelah valid; menambahkan pratinjau thumbnail; menghubungkan formulir ke kartu Home dan drawer; menyimpan Skill dan Experience selama sesi aplikasi agar tampil di daftar masing-masing; serta menguji alur formulir dan layout layar sempit.
+- **Tutorial 10:** menghubungkan aplikasi Flutter ke API Django untuk Skill dan Experience, menambahkan login token, mengirim formulir terautentikasi, memuat dan memperbarui daftar dari backend, serta menyiapkan build APK melalui GitHub Actions.
 
 ## Pertanyaan Reflektif
 
